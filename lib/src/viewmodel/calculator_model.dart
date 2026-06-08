@@ -1,12 +1,11 @@
+
 import 'package:flutter/cupertino.dart';
-
-import '../models/repository/repository.dart';
-
+import '../models/service/calculator_service.dart';
 
 class CalculatorViewModel extends ChangeNotifier {
   CalculatorViewModel(this._repository);
 
-  final Repository _repository;
+  final CalculatorService _repository;
 
   double result = 0;
 
@@ -33,9 +32,3 @@ class CalculatorViewModel extends ChangeNotifier {
     }
   }
   /// Removes all items from the cart.
-  void removeAll() {
-
-    // This call tells the widgets that are listening to this model to rebuild.
-
-  }
-

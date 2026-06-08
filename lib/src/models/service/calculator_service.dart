@@ -1,6 +1,6 @@
 import 'dart:core';
 
-class Repository{
+class CalculatorService {
   double add (double a, double b){
     return a + b;
   }
