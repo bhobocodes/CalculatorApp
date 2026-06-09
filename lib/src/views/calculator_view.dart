@@ -309,6 +309,7 @@ class _CalculatorViewState extends State<CalculatorView> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
+        padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: const Color(0xffEEF1F7),
           borderRadius: BorderRadius.circular(15),
