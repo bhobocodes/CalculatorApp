@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
+
       providers: [
         Provider<CalculatorService>(
           create: (_) => CalculatorService(),
@@ -26,11 +27,12 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<CalculatorViewModel>(
           create: (context) => CalculatorViewModel(
-            context.read<CalculatorService>(),
+            context.read<CalculatorRepository>(),
           ),
         ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: const CalculatorView(),
       ),
     );
