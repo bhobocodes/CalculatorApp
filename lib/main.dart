@@ -1,7 +1,9 @@
+import 'package:calculator_project/src/models/repository/calculator_repository.dart';
 import 'package:calculator_project/src/models/service/calculator_service.dart';
-import 'package:calculator_project/src/viewmodel/calculator_model.dart';
+import 'package:calculator_project/src/viewmodel/calculator_view_model.dart';
 import 'package:calculator_project/src/views/calculator_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,17 +14,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final calculatorService = CalculatorService();
-
-    final calculatorViewModel = CalculatorViewModel(
-      calculatorService,
-    );
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Calculator App',
-      home: CalculatorView(
-        viewModel: calculatorViewModel,
+    return MultiProvider(
+      providers: [
+        Provider<CalculatorService>(
+          create: (_) => CalculatorService(),
+        ),
+        Provider<CalculatorRepository>(
+          create: (context) => CalculatorRepository(
+            context.read<CalculatorService>(),
+          ),
+        ),
+        ChangeNotifierProvider<CalculatorViewModel>(
+          create: (context) => CalculatorViewModel(
+            context.read<CalculatorService>(),
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        home: const CalculatorView(),
       ),
     );
   }
