@@ -76,6 +76,19 @@ class CalculatorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void modulus(double a, double b) {
+    result = a % b;
+
+    history.add(
+      CalculationHistory(
+        expression: "$a % $b",
+        result: result,
+      ),
+    );
+
+    notifyListeners();
+  }
+
   // ✅ optional: clear history
   void clearHistory() {
     history.clear();

@@ -15,7 +15,30 @@ class _CalculatorViewState extends State<CalculatorView> {
   late TextEditingController aController;
   late TextEditingController bController;
 
+  bool isFirstSelected = true;
+
+  String selectedOperator = "";
+
   final _formKey = GlobalKey<FormState>();
+
+  final List<String> buttons = [
+    "AC","÷","%","×",
+    "7","8","9","×",
+    "4","5","6","-",
+    "1","2","3","+",
+    "0",".","=",""
+  ];
+
+  void appendNumber(String value) {
+    if (isFirstSelected) {
+      aController.text += value;
+    } else {
+      bController.text += value;
+    }
+
+    setState(() {});
+  }
+
 
   @override
   void initState() {
@@ -114,6 +137,12 @@ class _CalculatorViewState extends State<CalculatorView> {
 
       // ✅ ONLY ONE BODY (fixed)
       body: SafeArea(
+        child: Center(
+          child:ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 500,
+          ),
+
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Form(
@@ -125,177 +154,145 @@ class _CalculatorViewState extends State<CalculatorView> {
                 TextFormField(
                   controller: aController,
                   keyboardType: TextInputType.number,
+                  onTap: () => isFirstSelected = true,
                   decoration: const InputDecoration(
                     labelText: "First number",
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Enter first number"; // used key validator
-                    }
-                    return null;
-                  },
                 ),
-
                 const SizedBox(height: 10),
 
                 // ================= SECOND INPUT =================
                 TextFormField(
                   controller: bController,
                   keyboardType: TextInputType.number,
+                  onTap: () => isFirstSelected = false,
                   decoration: const InputDecoration(
                     labelText: "Second number",
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Enter second number";
-                    }
-                    return null;
-                  },
                 ),
 
                 const SizedBox(height: 15),
 
                 // ================= BUTTONS =================
 
+
+
                 Expanded(
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
 
-                      CalcButton(
-                        text: "AC",
-                        textColor: Colors.red,
-                        onTap: () {
-                          aController.clear();
-                          bController.clear();
-                        },
-                      ),
+                      final width = constraints.maxWidth;
 
-                      CalcButton(
-                        text: "×",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.multiply(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
+                      int crossAxisCount = 4;
 
-                      CalcButton(
-                        text: "%",
-                        textColor: Colors.indigo,
-                        onTap: () {},
-                      ),
+                      if (width > 1200) {
+                        crossAxisCount = 6;
+                      } else if (width > 800) {
+                        crossAxisCount = 5;
+                      }
 
-                      CalcButton(
-                        text: "÷",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.divide(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: 1000,
+                          ),
+                          child: GridView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: buttons.length,
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 1.3,
+                            ),
+                            itemBuilder: (context, index) {
+                              final value = buttons[index];
 
-                      CalcButton(text: "7"),
-                      CalcButton(text: "8"),
-                      CalcButton(text: "9"),
+                              return CalcButton(
+                                text: value,
+                                onTap: () {
 
-                      CalcButton(
-                        text: "×",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.multiply(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
+                                  if (value == "AC") {
+                                    aController.clear();
+                                    bController.clear();
 
-                      CalcButton(text: "4"),
-                      CalcButton(text: "5"),
-                      CalcButton(text: "6"),
+                                    setState(() {
+                                      selectedOperator = "";
+                                      isFirstSelected = true;
+                                    });
+                                  }
 
-                      CalcButton(
-                        text: "-",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.subtract(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
+                                  else if (["+", "-", "×", "÷", "%"].contains(value)) {
+                                    setState(() {
+                                      selectedOperator = value;
+                                    });
+                                  }
 
-                      CalcButton(text: "1"),
-                      CalcButton(text: "2"),
-                      CalcButton(text: "3"),
+                                  else if (value == "=") {
 
-                      CalcButton(
-                        text: "+",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.add(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
+                                    if (aController.text.isEmpty || bController.text.isEmpty) {
+                                      return;
+                                    }
 
-                      CalcButton(text: "0"),
+                                    final a = double.parse(aController.text);
+                                    final b = double.parse(bController.text);
 
-                      CalcButton(text: "."),
+                                    switch (selectedOperator) {
+                                      case "+":
+                                        viewModel.add(a, b);
+                                        break;
 
-                      CalcButton(
-                        text: "=",
-                        textColor: Colors.white,
-                        backgroundColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.add(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                                      case "-":
+                                        viewModel.subtract(a, b);
+                                        break;
+
+                                      case "×":
+                                        viewModel.multiply(a, b);
+                                        break;
+
+                                      case "÷":
+                                        viewModel.divide(a, b);
+                                        break;
+
+                                      case "%":
+                                        viewModel.modulus(a, b);
+                                        break;
+                                    }
+                                  }
+
+                                  else {
+                                    appendNumber(value);
+                                  }
+
+                                },
+
+
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
 
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
 
                 // ================= RESULT =================
                 Container(
-                  constraints: const BoxConstraints(
-                    minHeight: 50,
-                  ),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(10),
                   ),
+
                   child: Text(
                     "Result : ${viewModel.result}",
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -304,6 +301,8 @@ class _CalculatorViewState extends State<CalculatorView> {
             ),
           ),
         ),
+       ),
+      ),
       ),
     );
   }
