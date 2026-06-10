@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../viewmodel/calculator_view_model.dart';
+import 'widgets/calculator_button.dart';
 
 class CalculatorView extends StatefulWidget {
   const CalculatorView({super.key});
@@ -12,14 +12,13 @@ class CalculatorView extends StatefulWidget {
 
 class _CalculatorViewState extends State<CalculatorView> {
 
-
   late TextEditingController aController;
   late TextEditingController bController;
 
   final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() { // used intistate
+  void initState() {
     super.initState();
     aController = TextEditingController();
     bController = TextEditingController();
@@ -31,7 +30,6 @@ class _CalculatorViewState extends State<CalculatorView> {
     bController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +112,7 @@ class _CalculatorViewState extends State<CalculatorView> {
         ],
       ),
 
+      // ✅ ONLY ONE BODY (fixed)
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -162,41 +161,24 @@ class _CalculatorViewState extends State<CalculatorView> {
 
                 Expanded(
                   child: GridView.count(
+                    shrinkWrap: true,
                     crossAxisCount: 4,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 6.0,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
 
-                      _calcButton(
-                        "AC",
+                      CalcButton(
+                        text: "AC",
                         textColor: Colors.red,
                         onTap: () {
                           aController.clear();
                           bController.clear();
                         },
                       ),
-                      _calcButton("⌫", textColor: Colors.black54),
-                      _calcButton("%", textColor: Colors.indigo),
-                      _calcButton(
-                        "÷",
-                        textColor: Colors.indigo,
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            viewModel.divide(
-                              double.parse(aController.text),
-                              double.parse(bController.text),
-                            );
-                          }
-                        },
-                      ),
 
-                      _calcButton("7"),
-                      _calcButton("8"),
-                      _calcButton("9"),
-                      _calcButton(
-                        "×",
+                      CalcButton(
+                        text: "×",
                         textColor: Colors.indigo,
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
@@ -208,11 +190,48 @@ class _CalculatorViewState extends State<CalculatorView> {
                         },
                       ),
 
-                      _calcButton("4"),
-                      _calcButton("5"),
-                      _calcButton("6"),
-                      _calcButton(
-                        "-",
+                      CalcButton(
+                        text: "%",
+                        textColor: Colors.indigo,
+                        onTap: () {},
+                      ),
+
+                      CalcButton(
+                        text: "÷",
+                        textColor: Colors.indigo,
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            viewModel.divide(
+                              double.parse(aController.text),
+                              double.parse(bController.text),
+                            );
+                          }
+                        },
+                      ),
+
+                      CalcButton(text: "7"),
+                      CalcButton(text: "8"),
+                      CalcButton(text: "9"),
+
+                      CalcButton(
+                        text: "×",
+                        textColor: Colors.indigo,
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            viewModel.multiply(
+                              double.parse(aController.text),
+                              double.parse(bController.text),
+                            );
+                          }
+                        },
+                      ),
+
+                      CalcButton(text: "4"),
+                      CalcButton(text: "5"),
+                      CalcButton(text: "6"),
+
+                      CalcButton(
+                        text: "-",
                         textColor: Colors.indigo,
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
@@ -224,11 +243,12 @@ class _CalculatorViewState extends State<CalculatorView> {
                         },
                       ),
 
-                      _calcButton("1"),
-                      _calcButton("2"),
-                      _calcButton("3"),
-                      _calcButton(
-                        "+",
+                      CalcButton(text: "1"),
+                      CalcButton(text: "2"),
+                      CalcButton(text: "3"),
+
+                      CalcButton(
+                        text: "+",
                         textColor: Colors.indigo,
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
@@ -240,10 +260,14 @@ class _CalculatorViewState extends State<CalculatorView> {
                         },
                       ),
 
-                      _calcButton("0"),
-                      _calcButton("."),
+                      CalcButton(text: "0"),
 
-                      InkWell(
+                      CalcButton(text: "."),
+
+                      CalcButton(
+                        text: "=",
+                        textColor: Colors.white,
+                        backgroundColor: Colors.indigo,
                         onTap: () {
                           if (_formKey.currentState!.validate()) {
                             viewModel.add(
@@ -252,34 +276,18 @@ class _CalculatorViewState extends State<CalculatorView> {
                             );
                           }
                         },
-                        borderRadius: BorderRadius.circular(15),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.indigo,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "=",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
                 ),
 
-
                 const SizedBox(height: 15),
 
                 // ================= RESULT =================
                 Container(
-                  padding: const EdgeInsets.all(15),
+                  constraints: const BoxConstraints(
+                    minHeight: 50,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(10),
@@ -292,35 +300,7 @@ class _CalculatorViewState extends State<CalculatorView> {
                     ),
                   ),
                 ),
-
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  Widget _calcButton(
-      String text, {
-        Color textColor = Colors.black,
-        VoidCallback? onTap,
-      }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color(0xffEEF1F7),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
-              color: textColor,
             ),
           ),
         ),
