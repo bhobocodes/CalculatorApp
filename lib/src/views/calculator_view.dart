@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/calculator_view_model.dart';
 import 'widgets/calculator_button.dart';
+import 'widgets/calculator_text.dart';
 
 class CalculatorView extends StatefulWidget {
   const CalculatorView({super.key});
@@ -11,46 +12,70 @@ class CalculatorView extends StatefulWidget {
 }
 
 class _CalculatorViewState extends State<CalculatorView> {
-
   late TextEditingController aController;
   late TextEditingController bController;
+
+  late FocusNode firstFocus;
+  late FocusNode secondFocus;
 
   bool isFirstSelected = true;
 
   String selectedOperator = "";
+  int selectedIndex = -1;
 
   final _formKey = GlobalKey<FormState>();
 
+
   final List<String> buttons = [
-    "AC","÷","%","×",
-    "7","8","9","×",
-    "4","5","6","-",
-    "1","2","3","+",
-    "0",".","=",""
+    "AC",
+    "*",
+    "%",
+    "÷",
+    "7",
+    "8",
+    "9",
+    "-",
+    "4",
+    "5",
+    "6",
+    "+",
+    "1",
+    "2",
+    "3",
+    ".",
+    "0",
   ];
 
   void appendNumber(String value) {
-    if (isFirstSelected) {
-      aController.text += value;
-    } else {
-      bController.text += value;
-    }
+    setState(() {
+      if (isFirstSelected) {
+        aController.text = aController.text + value;
+      } else {
+        bController.text = bController.text + value;
+      }
+    });
 
-    setState(() {});
+    _formKey.currentState?.validate();
   }
-
 
   @override
   void initState() {
     super.initState();
     aController = TextEditingController();
     bController = TextEditingController();
+
+    firstFocus = FocusNode();
+    secondFocus = FocusNode();
   }
 
   @override
   void dispose() {
     aController.dispose();
     bController.dispose();
+
+    firstFocus.dispose();
+    secondFocus.dispose();
+
     super.dispose();
   }
 
@@ -60,7 +85,15 @@ class _CalculatorViewState extends State<CalculatorView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Calculator App"),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.calculate),
+            SizedBox(width: 8),
+            Text("Calculator App"),
+          ],
+        ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -86,42 +119,45 @@ class _CalculatorViewState extends State<CalculatorView> {
 
                             Align(
                               alignment: Alignment.centerRight,
-                              child: IconButton(
+                              child: TextButton.icon(
                                 onPressed: vm.clearHistory,
                                 icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
+                                  Icons.delete_forever,
+                                  color: Colors.blueGrey,
+                                ),
+                                label: const Text(
+                                  "Delete All",
+                                  style: TextStyle(color: Colors.lightGreen),
                                 ),
                               ),
                             ),
 
                             Expanded(
                               child: vm.history.isEmpty
-                                  ? const Center(
-                                child: Text("No history yet"),
-                              )
+                                  ? const Center(child: Text("No history yet"))
                                   : ListView.builder(
-                                itemCount: vm.history.length,
-                                itemBuilder: (context, index) {
-                                  final item = vm.history[index];
+                                      itemCount: vm.history.length,
+                                      itemBuilder: (context, index) {
+                                        final item = vm.history[index];
 
-                                  return ListTile(
-                                    leading: const Icon(Icons.history),
-                                    title: Text(item.expression),
-                                    subtitle:
-                                    Text("Result: ${item.result}"),
-                                    trailing: IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        vm.deleteHistory(index);
+                                        return ListTile(
+                                          leading: const Icon(Icons.history),
+                                          title: Text(item.expression),
+                                          subtitle: Text(
+                                            "Result: ${item.result}",
+                                          ),
+                                          trailing: IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.greenAccent,
+                                            ),
+                                            onPressed: () {
+                                              vm.deleteHistory(index);
+                                            },
+                                          ),
+                                        );
                                       },
                                     ),
-                                  );
-                                },
-                              ),
                             ),
                           ],
                         ),
@@ -137,172 +173,201 @@ class _CalculatorViewState extends State<CalculatorView> {
 
       // ✅ ONLY ONE BODY (fixed)
       body: SafeArea(
-        child: Center(
-          child:ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 500,
-          ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            FocusScope.of(context).unfocus();
 
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ================= FIRST INPUT =================
-                TextFormField(
-                  controller: aController,
-                  keyboardType: TextInputType.number,
-                  onTap: () => isFirstSelected = true,
-                  decoration: const InputDecoration(
-                    labelText: "First number",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
+            setState(() {
+              selectedIndex = -1;
+            });
+          },
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ================= FIRST INPUT =================
+                      CalculatorTextField(
+                        controller: aController,
+                        focusNode: firstFocus,
+                        label: "First number",
 
-                // ================= SECOND INPUT =================
-                TextFormField(
-                  controller: bController,
-                  keyboardType: TextInputType.number,
-                  onTap: () => isFirstSelected = false,
-                  decoration: const InputDecoration(
-                    labelText: "Second number",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Please enter first number";
+                          }
+                          return null;
+                        },
 
-                const SizedBox(height: 15),
+                        onTap: () {
+                          setState(() {
+                            isFirstSelected = true;
+                            selectedIndex = -1;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
 
-                // ================= BUTTONS =================
+                      // ================= Second INPUT ===========
+                      CalculatorTextField(
+                        controller: bController,
+                        focusNode: secondFocus,
+                        label: "Second number",
 
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Please enter second number";
+                          }
+                          return null;
+                        },
 
+                        onTap: () {
+                          setState(() {
+                            isFirstSelected = false;
+                            selectedIndex = -1;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 15),
 
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-
-                      final width = constraints.maxWidth;
-
-                      int crossAxisCount = 4;
-
-                      if (width > 1200) {
-                        crossAxisCount = 6;
-                      } else if (width > 800) {
-                        crossAxisCount = 5;
-                      }
-
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: 1000,
-                          ),
-                          child: GridView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: buttons.length,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 1.3,
-                            ),
-                            itemBuilder: (context, index) {
-                              final value = buttons[index];
-
-                              return CalcButton(
-                                text: value,
-                                onTap: () {
-
-                                  if (value == "AC") {
-                                    aController.clear();
-                                    bController.clear();
-
-                                    setState(() {
-                                      selectedOperator = "";
-                                      isFirstSelected = true;
-                                    });
-                                  }
-
-                                  else if (["+", "-", "×", "÷", "%"].contains(value)) {
-                                    setState(() {
-                                      selectedOperator = value;
-                                    });
-                                  }
-
-                                  else if (value == "=") {
-
-                                    if (aController.text.isEmpty || bController.text.isEmpty) {
-                                      return;
-                                    }
-
-                                    final a = double.parse(aController.text);
-                                    final b = double.parse(bController.text);
-
-                                    switch (selectedOperator) {
-                                      case "+":
-                                        viewModel.add(a, b);
-                                        break;
-
-                                      case "-":
-                                        viewModel.subtract(a, b);
-                                        break;
-
-                                      case "×":
-                                        viewModel.multiply(a, b);
-                                        break;
-
-                                      case "÷":
-                                        viewModel.divide(a, b);
-                                        break;
-
-                                      case "%":
-                                        viewModel.modulus(a, b);
-                                        break;
-                                    }
-                                  }
-
-                                  else {
-                                    appendNumber(value);
-                                  }
-
-                                },
-
-
-                              );
-                            },
+                      // ================= RESULT =================
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "Result : ${viewModel.result}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      );
-                    },
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      // ================= BUTTONS =================
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final width = constraints.maxWidth;
+
+                            int crossAxisCount = 4;
+
+                            if (width > 1200) {
+                              crossAxisCount = 6;
+                            } else if (width > 800) {
+                              crossAxisCount = 5;
+                            }
+
+                            return Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 1000,
+                                ),
+                                child: GridView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: buttons.length,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        crossAxisSpacing: 10,
+                                        mainAxisSpacing: 10,
+                                        childAspectRatio: 1.8,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final value = buttons[index];
+
+                                    return CalcButton(
+                                      text: value,
+                                      color: selectedIndex == index
+                                          ? Colors.green.withOpacity(
+                                              0.4,
+                                            ) // highlight color
+                                          : Colors
+                                                .grey
+                                                .shade300, // fixed base color
+                                      onTap: () {
+                                        if (value.trim() == "AC") {
+                                          setState(() {
+                                            aController.clear();
+                                            bController.clear();
+                                            selectedIndex = index;
+                                            isFirstSelected = true;
+                                          });
+
+                                          FocusScope.of(context).unfocus();
+                                          return;
+                                        }
+
+                                        // highlight ALWAYS first
+                                        setState(() {
+                                          selectedIndex = index;
+                                        });
+
+                                        if ([
+                                          "+",
+                                          "-",
+                                          "×",
+                                          "÷",
+                                          "%",
+                                        ].contains(value)) {
+                                          if (!_formKey.currentState!
+                                              .validate())
+                                            return;
+
+                                          final a = double.parse(
+                                            aController.text,
+                                          );
+                                          final b = double.parse(
+                                            bController.text,
+                                          );
+
+                                          switch (value) {
+                                            case "+":
+                                              viewModel.add(a, b);
+                                              break;
+                                            case "-":
+                                              viewModel.subtract(a, b);
+                                              break;
+                                            case "×":
+                                              viewModel.multiply(a, b);
+                                              break;
+                                            case "÷":
+                                              viewModel.divide(a, b);
+                                              break;
+                                            case "%":
+                                              viewModel.modulus(a, b);
+                                              break;
+                                          }
+                                        } else {
+                                          appendNumber(value);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
-                const SizedBox(height: 10),
-
-                // ================= RESULT =================
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-
-                  child: Text(
-                    "Result : ${viewModel.result}",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-       ),
-      ),
       ),
     );
   }
