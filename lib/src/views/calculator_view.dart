@@ -28,7 +28,7 @@ class _CalculatorViewState extends State<CalculatorView> {
 
   final List<String> buttons = [
     "AC",
-    "*",
+    "×",
     "%",
     "÷",
     "7",
@@ -55,7 +55,7 @@ class _CalculatorViewState extends State<CalculatorView> {
       }
     });
 
-    _formKey.currentState?.validate();
+
   }
 
   @override
@@ -136,28 +136,28 @@ class _CalculatorViewState extends State<CalculatorView> {
                               child: vm.history.isEmpty
                                   ? const Center(child: Text("No history yet"))
                                   : ListView.builder(
-                                      itemCount: vm.history.length,
-                                      itemBuilder: (context, index) {
-                                        final item = vm.history[index];
+                                itemCount: vm.history.length,
+                                itemBuilder: (context, index) {
+                                  final item = vm.history[index];
 
-                                        return ListTile(
-                                          leading: const Icon(Icons.history),
-                                          title: Text(item.expression),
-                                          subtitle: Text(
-                                            "Result: ${item.result}",
-                                          ),
-                                          trailing: IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Colors.greenAccent,
-                                            ),
-                                            onPressed: () {
-                                              vm.deleteHistory(index);
-                                            },
-                                          ),
-                                        );
+                                  return ListTile(
+                                    leading: const Icon(Icons.history),
+                                    title: Text(item.expression),
+                                    subtitle: Text(
+                                      "Result: ${item.result}",
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.greenAccent,
+                                      ),
+                                      onPressed: () {
+                                        vm.deleteHistory(index);
                                       },
                                     ),
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         ),
@@ -197,19 +197,15 @@ class _CalculatorViewState extends State<CalculatorView> {
                         controller: aController,
                         focusNode: firstFocus,
                         label: "First number",
-
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(secondFocus);
+                        },
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Please enter first number";
                           }
                           return null;
-                        },
-
-                        onTap: () {
-                          setState(() {
-                            isFirstSelected = true;
-                            selectedIndex = -1;
-                          });
                         },
                       ),
                       const SizedBox(height: 10),
@@ -219,19 +215,15 @@ class _CalculatorViewState extends State<CalculatorView> {
                         controller: bController,
                         focusNode: secondFocus,
                         label: "Second number",
-
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).unfocus();
+                        },
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Please enter second number";
                           }
                           return null;
-                        },
-
-                        onTap: () {
-                          setState(() {
-                            isFirstSelected = false;
-                            selectedIndex = -1;
-                          });
                         },
                       ),
                       const SizedBox(height: 15),
@@ -278,12 +270,12 @@ class _CalculatorViewState extends State<CalculatorView> {
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemCount: buttons.length,
                                   gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: crossAxisCount,
-                                        crossAxisSpacing: 10,
-                                        mainAxisSpacing: 10,
-                                        childAspectRatio: 1.8,
-                                      ),
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    childAspectRatio: 1.8,
+                                  ),
                                   itemBuilder: (context, index) {
                                     final value = buttons[index];
 
@@ -291,11 +283,11 @@ class _CalculatorViewState extends State<CalculatorView> {
                                       text: value,
                                       color: selectedIndex == index
                                           ? Colors.green.withOpacity(
-                                              0.4,
-                                            ) // highlight color
+                                        0.4,
+                                      ) // highlight color
                                           : Colors
-                                                .grey
-                                                .shade300, // fixed base color
+                                          .grey
+                                          .shade300, // fixed base color
                                       onTap: () {
                                         if (value.trim() == "AC") {
                                           setState(() {
@@ -304,6 +296,8 @@ class _CalculatorViewState extends State<CalculatorView> {
                                             selectedIndex = index;
                                             isFirstSelected = true;
                                           });
+
+                                          viewModel.clear();
 
                                           FocusScope.of(context).unfocus();
                                           return;

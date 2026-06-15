@@ -98,5 +98,7 @@ class CalculatorViewModel extends ChangeNotifier {
   void deleteHistory(int index) {
     history.removeAt(index);
     notifyListeners();
+
   }
+
 }

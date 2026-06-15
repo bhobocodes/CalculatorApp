@@ -5,6 +5,8 @@ class CalculatorTextField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String label;
+  final TextInputAction? textInputAction;
+  final Function(String)? onFieldSubmitted;
   final Function()? onTap;
   final String? Function(String?)? validator;
 
@@ -14,7 +16,7 @@ class CalculatorTextField extends StatelessWidget {
     required this.focusNode,
     required this.label,
     this.onTap,
-    this.validator,
+    this.validator, this.textInputAction, this.onFieldSubmitted,
   });
 
   @override
@@ -22,7 +24,12 @@ class CalculatorTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+
       keyboardType: TextInputType.number,
+
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
 
 
       enableSuggestions: false,

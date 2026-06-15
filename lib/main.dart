@@ -15,20 +15,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-
       providers: [
-        Provider<CalculatorService>(
-          create: (_) => CalculatorService(),
-        ),
+        Provider<CalculatorService>(create: (_) => CalculatorService()),
         Provider<CalculatorRepository>(
-          create: (context) => CalculatorRepository(
-            context.read<CalculatorService>(),
-          ),
+          create: (context) =>
+              CalculatorRepository(context.read<CalculatorService>()),
         ),
         ChangeNotifierProvider<CalculatorViewModel>(
-          create: (context) => CalculatorViewModel(
-            context.read<CalculatorRepository>(),
-          ),
+          create: (context) =>
+              CalculatorViewModel(context.read<CalculatorRepository>()),
         ),
       ],
       child: MaterialApp(
