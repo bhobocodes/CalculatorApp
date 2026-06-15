@@ -12,7 +12,8 @@ class CalcButton extends StatelessWidget {
     required this.text,
     this.textColor = Colors.black,
     this.backgroundColor = const Color(0xffEEF1F7),
-    this.onTap, required this.color,
+    this.onTap,
+    required this.color,
   });
 
   @override
@@ -26,13 +27,7 @@ class CalcButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 20,
-              color: textColor,
-            ),
-          ),
+          child: Text(text, style: TextStyle(fontSize: 20, color: textColor)),
         ),
       ),
     );

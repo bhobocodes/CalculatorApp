@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../models/calculation_histroy.dart';
 import '../models/repository/calculator_repository.dart';
-
+import 'package:math_expressions/math_expressions.dart';
 
 class CalculatorViewModel extends ChangeNotifier {
   CalculatorViewModel(this._repository);
@@ -10,86 +10,37 @@ class CalculatorViewModel extends ChangeNotifier {
 
   double result = 0;
 
-  // ✅ HISTORY ADD
   final List<CalculationHistory> history = [];
 
+  // ================= CLEAR RESULT =================
   void clear() {
     result = 0;
     notifyListeners();
   }
 
-  void add(double a, double b) {
-    result = _repository.add(a, b);
+  // ================= MAIN CALCULATOR =================
+  void calculateExpression(String expression) {
+    try {
+      Parser parser = Parser();
 
-    // ✅ save history
-    history.add(
-      CalculationHistory(
-        expression: "$a + $b",
-        result: result,
-      ),
-    );
+      Expression exp = parser.parse(
+        expression.replaceAll('×', '*').replaceAll('÷', '/'),
+      );
 
-    notifyListeners();
-  }
+      ContextModel contextModel = ContextModel();
 
-  void subtract(double a, double b) {
-    result = _repository.subtract(a, b);
+      result = exp.evaluate(EvaluationType.REAL, contextModel);
 
-    history.add(
-      CalculationHistory(
-        expression: "$a - $b",
-        result: result,
-      ),
-    );
+      history.add(CalculationHistory(expression: expression, result: result));
 
-    notifyListeners();
-  }
-
-  void multiply(double a, double b) {
-    result = _repository.multiply(a, b);
-
-    history.add(
-      CalculationHistory(
-        expression: "$a × $b",
-        result: result,
-      ),
-    );
-
-    notifyListeners();
-  }
-
-  void divide(double a, double b) {
-    if (b == 0) {
+      notifyListeners();
+    } catch (e) {
       result = 0;
-      return;
+      notifyListeners();
     }
-
-    result = _repository.divide(a, b);
-
-    history.add(
-      CalculationHistory(
-        expression: "$a ÷ $b",
-        result: result,
-      ),
-    );
-
-    notifyListeners();
   }
 
-  void modulus(double a, double b) {
-    result = a % b;
-
-    history.add(
-      CalculationHistory(
-        expression: "$a % $b",
-        result: result,
-      ),
-    );
-
-    notifyListeners();
-  }
-
-  // ✅ optional: clear history
+  // ================= HISTORY =================
   void clearHistory() {
     history.clear();
     notifyListeners();
@@ -98,7 +49,5 @@ class CalculatorViewModel extends ChangeNotifier {
   void deleteHistory(int index) {
     history.removeAt(index);
     notifyListeners();
-
   }
-
 }

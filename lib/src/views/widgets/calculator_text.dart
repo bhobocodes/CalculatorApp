@@ -1,51 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-class CalculatorTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final String label;
-  final TextInputAction? textInputAction;
-  final Function(String)? onFieldSubmitted;
-  final Function()? onTap;
-  final String? Function(String?)? validator;
+class CalculatorDisplay extends StatelessWidget {
+  final String expression;
+  final String result;
 
-  const CalculatorTextField({
+  const CalculatorDisplay({
     super.key,
-    required this.controller,
-    required this.focusNode,
-    required this.label,
-    this.onTap,
-    this.validator, this.textInputAction, this.onFieldSubmitted,
+    required this.expression,
+    required this.result,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            expression.isEmpty ? "0" : expression,
+            style: const TextStyle(fontSize: 30),
+          ),
 
-      keyboardType: TextInputType.number,
+          const SizedBox(height: 10),
 
-      textInputAction: textInputAction,
-      onFieldSubmitted: onFieldSubmitted,
-
-
-      enableSuggestions: false,
-      autocorrect: false,
-      autofillHints: const [],
-
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-      ],
-
-      onTap: onTap,
-      validator: validator,
-
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
+          Text(
+            result,
+            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
