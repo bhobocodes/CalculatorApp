@@ -1,8 +1,10 @@
+import 'package:calculator_project/src/views/widgets/history_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/calculator_view_model.dart';
 import 'widgets/calculator_button.dart';
 import 'widgets/calculator_text.dart';
+import 'widgets/calculator_button_grid.dart';
 
 class CalculatorView extends StatefulWidget {
   const CalculatorView({super.key});
@@ -19,30 +21,11 @@ class _CalculatorViewState extends State<CalculatorView> {
   String expression = "";
 
   final List<String> buttons = [
-    "AC",
-    "(",
-    ")",
-    "÷",
-
-    "7",
-    "8",
-    "9",
-    "×",
-
-    "4",
-    "5",
-    "6",
-    "-",
-
-    "1",
-    "2",
-    "3",
-    "+",
-
-    "0",
-    ".",
-    "=",
-    "%",
+    "AC", "(", ")", "÷",
+    "7", "8", "9", "×",
+    "4", "5", "6", "-",
+    "1", "2", "3", "+",
+    "0", ".", "=", "%",
   ];
 
   void appendValue(String value) {
@@ -84,70 +67,7 @@ class _CalculatorViewState extends State<CalculatorView> {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                builder: (_) {
-                  return Consumer<CalculatorViewModel>(
-                    builder: (context, vm, child) {
-                      return SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.7,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 15),
-                            const Text(
-                              "History",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton.icon(
-                                onPressed: vm.clearHistory,
-                                icon: const Icon(
-                                  Icons.delete_forever,
-                                  color: Colors.blueGrey,
-                                ),
-                                label: const Text(
-                                  "Delete All",
-                                  style: TextStyle(color: Colors.lightGreen),
-                                ),
-                              ),
-                            ),
-
-                            Expanded(
-                              child: vm.history.isEmpty
-                                  ? const Center(child: Text("No history yet"))
-                                  : ListView.builder(
-                                      itemCount: vm.history.length,
-                                      itemBuilder: (context, index) {
-                                        final item = vm.history[index];
-
-                                        return ListTile(
-                                          leading: const Icon(Icons.history),
-                                          title: Text(item.expression),
-                                          subtitle: Text(
-                                            "Result: ${item.result}",
-                                          ),
-                                          trailing: IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Colors.greenAccent,
-                                            ),
-                                            onPressed: () {
-                                              vm.deleteHistory(index);
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
+                builder: (_) => const HistoryBottomSheet(),
               );
             },
           ),
@@ -215,97 +135,60 @@ class _CalculatorViewState extends State<CalculatorView> {
 
                     // ================= BUTTONS =================
                     Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final width = constraints.maxWidth;
+                      child: CalculatorButtonGrid(
+                        buttons: buttons,
+                        selectedIndex: selectedIndex,
+                        onTap: (value, index) {
 
-                          int crossAxisCount = 4;
+                          if (value == "=") {
+                            while (openBracket > 0) {
+                              expression += ")";
+                              openBracket--;
+                            }
 
-                          if (width > 1200) {
-                            crossAxisCount = 6;
-                          } else if (width > 800) {
-                            crossAxisCount = 5;
+                            viewModel.calculateExpression(
+                              expression,
+                            );
+                            return;
                           }
 
-                          return Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1000),
-                              child: GridView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: buttons.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      crossAxisSpacing: 10,
-                                      mainAxisSpacing: 10,
-                                      childAspectRatio: 1.8,
-                                    ),
-                                itemBuilder: (context, index) {
-                                  final value = buttons[index];
+                          if (value == "AC") {
+                            setState(() {
+                              expression = "";
+                              openBracket = 0;
+                              selectedIndex = index;
+                              _controller.clear();
+                            });
 
-                                  return CalcButton(
-                                    text: value,
-                                    color: selectedIndex == index
-                                        ? Colors.green.withOpacity(
-                                            0.4,
-                                          ) // highlight color
-                                        : Colors
-                                              .grey
-                                              .shade300, // fixed base color
-                                    onTap: () {
-                                      if (value == "=") {
-                                        // auto close brackets
-                                        while (openBracket > 0) {
-                                          expression += ")";
-                                          openBracket--;
-                                        }
+                            viewModel.clear();
+                            return;
+                          }
 
-                                        viewModel.calculateExpression(
-                                          expression,
-                                        );
-                                        return;
-                                      }
+                          setState(() {
+                            if (value == "(") {
+                              openBracket++;
+                              expression += value;
+                            } else if (value == ")") {
+                              if (openBracket > 0) {
+                                openBracket--;
+                                expression += value;
+                              }
+                            } else {
+                              expression += value;
+                            }
 
-                                      if (value == "AC") {
-                                        setState(() {
-                                          expression = "";
-                                          openBracket = 0;
-                                          selectedIndex = index;
+                            _controller.text = expression;
 
-                                          _controller.clear();
-                                        });
-
-                                        viewModel.clear();
-                                        return;
-                                      }
-
-                                      setState(() {
-                                        if (value == "(") {
-                                          openBracket++;
-                                          expression += value;
-                                        } else if (value == ")") {
-                                          if (openBracket > 0) {
-                                            openBracket--;
-                                            expression += value;
-                                          }
-                                        } else {
-                                          expression += value;
-                                        }
-
-                                        _controller.text = expression;
-                                        _controller.selection = TextSelection.fromPosition(
-                                          TextPosition(offset: _controller.text.length),
-                                        );
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          );
+                            _controller.selection =
+                                TextSelection.fromPosition(
+                                  TextPosition(
+                                    offset: _controller.text.length,
+                                  ),
+                                );
+                          });
                         },
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
