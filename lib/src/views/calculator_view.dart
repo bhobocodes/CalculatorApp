@@ -1,9 +1,9 @@
-import 'package:calculator_project/src/views/widgets/history_bottom_sheet.dart';
+import 'package:calculator_project/src/views/widgets/calculator_app_bar.dart';
+import 'package:calculator_project/src/views/widgets/calculator_input.dart';
+import 'package:calculator_project/src/views/widgets/calculator_result.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/calculator_view_model.dart';
-import 'widgets/calculator_button.dart';
-import 'widgets/calculator_text.dart';
 import 'widgets/calculator_button_grid.dart';
 
 class CalculatorView extends StatefulWidget {
@@ -50,29 +50,7 @@ class _CalculatorViewState extends State<CalculatorView> {
     final viewModel = context.watch<CalculatorViewModel>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.calculate),
-            SizedBox(width: 8),
-            Text("Calculator App"),
-          ],
-        ),
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => const HistoryBottomSheet(),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: const CalculatorAppBar(),
 
       // ✅ ONLY ONE BODY (fixed)
       body: SafeArea(
@@ -96,17 +74,8 @@ class _CalculatorViewState extends State<CalculatorView> {
                     const SizedBox(height: 15),
 
                     // ================= INPUT =================
-                    TextField(
+                    CalculatorInput(
                       controller: _controller,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: "Enter expression...",
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
                       onChanged: (value) {
                         expression = value;
                       },
@@ -115,22 +84,7 @@ class _CalculatorViewState extends State<CalculatorView> {
                     const SizedBox(height: 15),
 
                     // ================= RESULT =================
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        "Result : ${viewModel.result}",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
+                    CalculatorResult(result: viewModel.result),
                     const SizedBox(height: 15),
 
                     // ================= BUTTONS =================
@@ -139,16 +93,13 @@ class _CalculatorViewState extends State<CalculatorView> {
                         buttons: buttons,
                         selectedIndex: selectedIndex,
                         onTap: (value, index) {
-
                           if (value == "=") {
                             while (openBracket > 0) {
                               expression += ")";
                               openBracket--;
                             }
 
-                            viewModel.calculateExpression(
-                              expression,
-                            );
+                            viewModel.calculateExpression(expression);
                             return;
                           }
 
@@ -179,16 +130,13 @@ class _CalculatorViewState extends State<CalculatorView> {
 
                             _controller.text = expression;
 
-                            _controller.selection =
-                                TextSelection.fromPosition(
-                                  TextPosition(
-                                    offset: _controller.text.length,
-                                  ),
-                                );
+                            _controller.selection = TextSelection.fromPosition(
+                              TextPosition(offset: _controller.text.length),
+                            );
                           });
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
