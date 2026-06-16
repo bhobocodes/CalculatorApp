@@ -76,8 +76,18 @@ class _CalculatorViewState extends State<CalculatorView> {
                     // ================= INPUT =================
                     CalculatorInput(
                       controller: _controller,
+
                       onChanged: (value) {
                         expression = value;
+                      },
+
+                      onSubmitted: (value) {
+                        while (openBracket > 0) {
+                          expression += ")";
+                          openBracket--;
+                        }
+
+                        viewModel.calculateExpression(expression);
                       },
                     ),
 
@@ -94,6 +104,10 @@ class _CalculatorViewState extends State<CalculatorView> {
                         selectedIndex: selectedIndex,
                         onTap: (value, index) {
                           if (value == "=") {
+                            if (openBracket > 0) {
+                              viewModel.result = "Bracket Error";
+                              return;
+                            }
                             while (openBracket > 0) {
                               expression += ")";
                               openBracket--;

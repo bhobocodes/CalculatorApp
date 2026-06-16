@@ -8,18 +8,43 @@ class CalculatorViewModel extends ChangeNotifier {
 
   final CalculatorRepository _repository;
 
-  double result = 0;
+  String result = "0";
 
   final List<CalculationHistory> history = [];
 
+  bool _endsWithOperator(String expression) {
+    return expression.endsWith('+') ||
+        expression.endsWith('-') ||
+        expression.endsWith('*') ||
+        expression.endsWith('/') ||
+        expression.endsWith('×') ||
+        expression.endsWith('÷');
+  }
+
+
+
   // ================= CLEAR RESULT =================
   void clear() {
-    result = 0;
+    result = "0";
     notifyListeners();
   }
 
   // ================= MAIN CALCULATOR =================
   void calculateExpression(String expression) {
+    expression = expression.trim();
+
+    if (expression.isEmpty) {
+      result = "Empty Expression";
+      notifyListeners();
+      return;
+    }
+
+    if (_endsWithOperator(expression)) {
+      result = "Invalid Expression";
+      notifyListeners();
+      return;
+    }
+
     try {
       Parser parser = Parser();
 
@@ -29,13 +54,16 @@ class CalculatorViewModel extends ChangeNotifier {
 
       ContextModel contextModel = ContextModel();
 
-      result = exp.evaluate(EvaluationType.REAL, contextModel);
+      double value = exp.evaluate(
+        EvaluationType.REAL,
+        contextModel,
+      );
 
-      history.add(CalculationHistory(expression: expression, result: result));
+      result = value.toString();
 
       notifyListeners();
     } catch (e) {
-      result = 0;
+      result = "Invalid";
       notifyListeners();
     }
   }

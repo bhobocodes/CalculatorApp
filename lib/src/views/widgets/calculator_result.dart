@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CalculatorResult extends StatelessWidget {
-  final double result;
+  final String result;
 
   const CalculatorResult({
     super.key,
